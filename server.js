@@ -102,7 +102,6 @@ router.route('/movies')
         newMovie.title = req.body.title;
         //Set to 4 digit year of release
         newMovie.releaseDate = req.body.releaseDate;
-        console.log(newMovie.releaseDate);
         if (newMovie.releaseDate < 1888)
             res.status(400).send({message: 'Invalid year of release.'})
         newMovie.genre = req.body.genre;
