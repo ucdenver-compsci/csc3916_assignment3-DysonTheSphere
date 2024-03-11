@@ -3,7 +3,7 @@ CSC3916 HW2
 File: Server.js
 Description: Web API scaffolding for Movie API
  */
-
+var env = require('dotenv').config();
 var express = require('express');
 var bodyParser = require('body-parser');
 var passport = require('passport');
@@ -43,7 +43,7 @@ function getJSONObjectForMovieRequirement(req) {
 
 router.post('/signup', function(req, res) {
     if (!req.body.username || !req.body.password) {
-        res.json({success: false, msg: 'Please include both username and password to signup.'})
+        res.json({success: false, msg: '/Please include both username and password to signup.'})
     } else {
         var user = new User();
         user.name = req.body.name;
@@ -52,6 +52,7 @@ router.post('/signup', function(req, res) {
 
         user.save(function(err){
             if (err) {
+                console.log(err.message);
                 if (err.code == 11000)
                     return res.json({ success: false, message: 'A user with that username already exists.'});
                 else
@@ -72,7 +73,6 @@ router.post('/signin', function (req, res) {
         if (err) {
             res.send(err);
         }
-
         user.comparePassword(userNew.password, function(isMatch) {
             if (isMatch) {
                 var userToken = { id: user.id, username: user.username };
@@ -85,9 +85,44 @@ router.post('/signin', function (req, res) {
         })
     })
 });
+router.route('/movies')
+    .get((req, res) => {
+        // Return all movies
+        Movie.find({}).exec(function(err, movies) {
+            if (err) {
+                console.log(err);
+            }
+
+            res.json ({success: true, movies: movies})
+        })
+    })
+    .post(authJwtController.isAuthenticated, (req, res) => {
+        //Save a single movie
+        var newMovie = new Movie();
+        newMovie.title = req.body.title;
+        //conforming to ISO 8601, will need to change with REACT site
+        newMovie.releaseDate = Date(req.body.releaseDate);
+        console.log(newMovie.releaseDate);
+        if (newMovie.releaseDate.getFullYear() < 1888)
+            res.status(400).send({message: 'Invalid date of release.'})
+        newMovie.genre = req.body.genre;
+        newMovie.actors = req.body.actors;
+        if (newMovie.actors.length < 1)
+            res.status(400).send({message: 'There must be at least one actor in a film.'})
+
+        newMovie.save(function(err){
+            if (err) {
+                console.log(err.message);
+                return res.json(err);
+            }
+
+            res.json({success: true, msg: 'Successfully created new movie.'});
+            });
+    })
+    .all((req, res) => {
+        res.status(405).send({message: 'HTTP method not supported.' });
+    })
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
 module.exports = app; // for testing only
-
-

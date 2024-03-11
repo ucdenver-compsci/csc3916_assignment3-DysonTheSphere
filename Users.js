@@ -12,6 +12,7 @@ try {
     console.log("could not connect");
 }
 mongoose.set('useCreateIndex', true);
+console.log(mongoose.connection.readyState);
 
 //user schema
 var UserSchema = new Schema({
