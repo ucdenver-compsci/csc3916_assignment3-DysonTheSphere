@@ -12,7 +12,6 @@ try {
     console.log("could not connect");
 }
 mongoose.set('useCreateIndex', true);
-console.log(mongoose.connection.readyState);
 
 //user schema
 var UserSchema = new Schema({
@@ -23,7 +22,8 @@ var UserSchema = new Schema({
 
 UserSchema.pre('save', function(next) {
     var user = this;
-
+    console.log('saving a new user');
+    console.log('mongodb connection: ' + mongoose.connection.readyState);
     //hash the password
     if (!user.isModified('password')) return next();
 
