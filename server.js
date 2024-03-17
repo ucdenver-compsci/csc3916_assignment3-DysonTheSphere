@@ -103,11 +103,11 @@ router.route('/movies')
         //Set to 4 digit year of release
         newMovie.releaseDate = req.body.releaseDate;
         if (newMovie.releaseDate < 1888)
-            res.status(400).send({message: 'Invalid year of release.'})
+            res.status(400).send({message: 'Invalid year of release.'});
         newMovie.genre = req.body.genre;
         newMovie.actors = req.body.actors;
         if (newMovie.actors.length < 3)
-            res.status(400).send({message: 'There must be at least three actors in a film.'})
+            res.status(400).send({message: 'There must be at least three actors in a film.'});
 
         newMovie.save(function(err){
             if (err) {
@@ -117,6 +117,48 @@ router.route('/movies')
 
             res.json({success: true, msg: 'Successfully created new movie.'});
             });
+    })
+    .all((req, res) => {
+        res.status(405).send({message: 'HTTP method not supported.' });
+    })
+router.route('/movies/:movieparameter')
+    .get((req, res) => {
+        Movie.find({title: req.params.movieparameter}).exec(function(err, movie) {  
+            if (err)
+                console.log(err);
+            if (movie.length == 1)
+            {
+                title = movie[0].title;
+                res.json ({success: true, movie: movie});
+            }
+            else 
+            {
+                res.json({success: false});
+            }
+        })
+    })
+    .put(authJwtController.isAuthenticated, (req,res) => {
+        title = req.params.movieparameter;
+        // For now I am assuming that a partial match should overwrite the title of the film, only one argument is given to PUT /movies/nameTitle
+        Movie.updateOne({title: {$regex: title}}, {$set: {'title': title}}).exec(function(err, set) {
+            if (err)
+                console.log(err);
+            if (set.n == 1)
+                res.json ({success: true});
+            else
+                res.json ({success: false});
+        })
+    })
+    .delete(authJwtController.isAuthenticated, (req,res) => {
+        title = req.params.movieparameter;
+        Movie.deleteOne({title: title}).exec(function(err, rem) {
+            if (err)
+                console.log(err);
+            if (rem.n == 1)
+                res.json ({success: true});
+            else
+                res.json ({success: false});
+        })
     })
     .all((req, res) => {
         res.status(405).send({message: 'HTTP method not supported.' });
