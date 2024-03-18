@@ -112,17 +112,19 @@ router.route('/movies')
                 newMovie.genre = req.body.genre;
                 newMovie.actors = req.body.actors;
 
-                if (newMovie.releaseDate < 1888 || newMovie.actors.length < 3)
+                if (newMovie.releaseDate < 1888 || newMovie.actors.length < 3 || !Movie.schema.path('genre').enumValues.includes(newMovie.genre))
                     res.status(400).send({success: false, message: 'Unable to add film.'});
-
-                newMovie.save(function(err){
-                    if (err) {
-                        console.log(err.message);
-                        return res.json(err);
-                    }
-
-                    res.json({success: true, message: 'Successfully created new movie.'});
-                });
+                else
+                {
+                    newMovie.save(function(err){
+                        if (err) {
+                            console.log(err.message);
+                            return res.json(err);
+                        }
+    
+                        res.json({success: true, message: 'Successfully created new movie.'});
+                    });
+                }
             }
         })
     })
