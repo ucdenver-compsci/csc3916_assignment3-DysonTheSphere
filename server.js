@@ -97,26 +97,36 @@ router.route('/movies')
         })
     })
     .post(authJwtController.isAuthenticated, (req, res) => {
-        //Save a single movie
-        var newMovie = new Movie();
-        newMovie.title = req.body.title;
-        //Set to 4 digit year of release
-        newMovie.releaseDate = req.body.releaseDate;
-        if (newMovie.releaseDate < 1888)
-            res.status(400).send({message: 'Invalid year of release.'});
-        newMovie.genre = req.body.genre;
-        newMovie.actors = req.body.actors;
-        if (newMovie.actors.length < 3)
-            res.status(400).send({message: 'There must be at least three actors in a film.'});
+        Movie.find({title: req.body.title}).exec(function (err, found) {
+            if (err)
+                console.log(err);
+            // movie is found
+            if (found.length != 0)
+                return res.json({success: false, msg: 'Movie already exists.'});
+            else // movie is not found
+            {
+                // Save a single movie
+                var newMovie = new Movie();
+                newMovie.title = req.body.title;
+                // Set to 4 digit year of release
+                newMovie.releaseDate = req.body.releaseDate;
+                if (newMovie.releaseDate < 1888)
+                    res.status(400).send({message: 'Invalid year of release.'});
+                newMovie.genre = req.body.genre;
+                newMovie.actors = req.body.actors;
+                if (newMovie.actors.length < 3)
+                    res.status(400).send({message: 'There must be at least three actors in a film.'});
 
-        newMovie.save(function(err){
-            if (err) {
-                console.log(err.message);
-                return res.json(err);
+                newMovie.save(function(err){
+                    if (err) {
+                        console.log(err.message);
+                        return res.json(err);
+                    }
+
+                    res.json({success: true, msg: 'Successfully created new movie.'});
+                });
             }
-
-            res.json({success: true, msg: 'Successfully created new movie.'});
-            });
+        })
     })
     .all((req, res) => {
         res.status(405).send({message: 'HTTP method not supported.' });
