@@ -108,14 +108,12 @@ router.route('/movies')
                 // Save a single movie
                 var newMovie = new Movie();
                 newMovie.title = req.body.title;
-                // Set to 4 digit year of release
                 newMovie.releaseDate = req.body.releaseDate;
-                if (newMovie.releaseDate < 1888)
-                    res.status(400).send({message: 'Invalid year of release.'});
                 newMovie.genre = req.body.genre;
                 newMovie.actors = req.body.actors;
-                if (newMovie.actors.length < 3)
-                    res.status(400).send({message: 'There must be at least three actors in a film.'});
+
+                if (newMovie.releaseDate < 1888 || newMovie.actors.length < 3)
+                    res.status(400).send({success: false, message: 'Unable to add film.'});
 
                 newMovie.save(function(err){
                     if (err) {
@@ -123,7 +121,7 @@ router.route('/movies')
                         return res.json(err);
                     }
 
-                    res.json({success: true, msg: 'Successfully created new movie.'});
+                    res.json({success: true, message: 'Successfully created new movie.'});
                 });
             }
         })
